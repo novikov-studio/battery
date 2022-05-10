@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 class Battery {
   static const _channelName = 'battery';
   static const _methodPowerChangeNotify = 'power_change_notify';
-  static const _methodGetPercents = 'get_percents';
+  static const _methodGetPower = 'get_percents';
 
   static const MethodChannel _channel = MethodChannel(_channelName);
   static bool _initialized = false;
@@ -20,8 +20,8 @@ class Battery {
   }
 
   /// Получение текущего зараяда батарееи в процентах (0.0 .. 1.0).
-  static Future<double?> get percents async =>
-      _channel.invokeMethod<double?>(_methodGetPercents);
+  static Future<double?> get power async =>
+      _channel.invokeMethod<double?>(_methodGetPower);
 
   /// Колбэк на изменение заряда батареи.
   static ValueChanged<double>? get onBatteryPowerChanged =>

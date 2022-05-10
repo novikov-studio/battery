@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-
-import 'package:flutter/services.dart';
 import 'package:battery/battery.dart';
 
 void main() {
@@ -16,34 +13,12 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String _platformVersion = 'Unknown';
+  int? _power;
 
   @override
   void initState() {
     super.initState();
-    initPlatformState();
-  }
-
-  // Platform messages are asynchronous, so we initialize in an async method.
-  Future<void> initPlatformState() async {
-    String platformVersion;
-    // Platform messages may fail, so we use a try/catch PlatformException.
-    // We also handle the message potentially returning null.
-    try {
-      platformVersion =
-          await Battery.platformVersion ?? 'Unknown platform version';
-    } on PlatformException {
-      platformVersion = 'Failed to get platform version.';
-    }
-
-    // If the widget was removed from the tree while the asynchronous platform
-    // message was in flight, we want to discard the reply rather than calling
-    // setState to update our non-existent appearance.
-    if (!mounted) return;
-
-    setState(() {
-      _platformVersion = platformVersion;
-    });
+    Battery.onBatteryPowerChanged = _onBatteryPowerChanged;
   }
 
   @override
@@ -51,11 +26,51 @@ class _MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          title: const Text('Plugin example app'),
+          title: const Text('Battery Plugin example'),
+          actions: [
+            IconButton(
+              onPressed: _getPower,
+              icon: const Icon(Icons.battery_unknown),
+            ),
+          ],
         ),
         body: Center(
-          child: Text('Running on: $_platformVersion\n'),
+          child: _power != null
+              ? Text('$_power')
+              : const CircularProgressIndicator(),
         ),
+      ),
+    );
+  }
+
+  void _onBatteryPowerChanged(power) {
+    setState(() {
+      _power = (power * 100.0).round();
+    });
+
+    if (power < 20) {
+      _showSnack('Low power!', isError: true);
+    }
+  }
+
+  Future<void> _getPower() async {
+    final power = await Battery.power;
+    if (power != null) {
+      final percents = (power * 100.0).round();
+      _showSnack('Power $percents', isError: false);
+    } else {
+      _showSnack('Can\'t get power', isError: true);
+    }
+  }
+
+  void _showSnack(String text, {required bool isError}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          text,
+          style: isError ? const TextStyle(color: Colors.white) : null,
+        ),
+        backgroundColor: isError ? Colors.red : null,
       ),
     );
   }
