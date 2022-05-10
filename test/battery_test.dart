@@ -1,14 +1,14 @@
+import 'package:battery/battery.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:battery/battery.dart';
 
 void main() {
-  const MethodChannel channel = MethodChannel('battery');
+  const channel = MethodChannel('battery');
 
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
-    channel.setMockMethodCallHandler((MethodCall methodCall) async {
+    channel.setMockMethodCallHandler((methodCall) async {
       return '42';
     });
   });
