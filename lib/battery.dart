@@ -1,13 +1,56 @@
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 
+/// Интерфейс плагина.
 class Battery {
-  static const MethodChannel _channel = MethodChannel('battery');
+  static const _channelName = 'battery';
+  static const _methodPowerChangeNotify = 'power_change_notify';
+  static const _methodGetPercents = 'get_percents';
+
+  static const MethodChannel _channel = MethodChannel(_channelName);
+  static bool _initialized = false;
+  static ValueChanged<double>? _onBatteryPowerChanged;
 
   static Future<String?> get platformVersion async {
     final version = await _channel.invokeMethod<String?>('getPlatformVersion');
 
     return version;
+  }
+
+  /// Получение текущего зараяда батарееи в процентах (0.0 .. 1.0).
+  static Future<double?> get percents async =>
+      _channel.invokeMethod<double?>(_methodGetPercents);
+
+  /// Колбэк на изменение заряда батареи.
+  static ValueChanged<double>? get onBatteryPowerChanged =>
+      _onBatteryPowerChanged;
+
+  /// Установка колбэка на изменение заряда батареи.
+  static set onBatteryPowerChanged(ValueChanged<double>? value) {
+    _onBatteryPowerChanged = value;
+    if (value != null) {
+      if (!_initialized) _init();
+    } else {
+      if (_initialized) _finit();
+    }
+  }
+
+  /// Инициализация.
+  static void _init() {
+    _channel.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case _methodPowerChangeNotify:
+          _onBatteryPowerChanged?.call(call.arguments as double);
+      }
+    });
+    _initialized = true;
+  }
+
+  /// Финализация.
+  static void _finit() {
+    _channel.setMethodCallHandler(null);
+    _initialized = false;
   }
 }
