@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:battery/battery.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    const MaterialApp(
+      home: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -14,6 +18,7 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   int? _power;
+  bool _alarm = true;
 
   @override
   void initState() {
@@ -23,8 +28,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
+    return Scaffold(
         appBar: AppBar(
           title: const Text('Battery Plugin example'),
           actions: [
@@ -39,25 +43,28 @@ class _MyAppState extends State<MyApp> {
               ? Text('$_power')
               : const CircularProgressIndicator(),
         ),
-      ),
     );
   }
 
   void _onBatteryPowerChanged(power) {
     setState(() {
-      _power = (power * 100.0).round();
+      _power = power;
     });
 
     if (power < 20) {
-      _showSnack('Low power!', isError: true);
+      if (_alarm) {
+        _alarm = false;
+        _showSnack('Low power!', isError: true);
+      }
+    } else {
+      _alarm = true;
     }
   }
 
   Future<void> _getPower() async {
     final power = await Battery.power;
     if (power != null) {
-      final percents = (power * 100.0).round();
-      _showSnack('Power $percents', isError: false);
+      _showSnack('Power $power', isError: false);
     } else {
       _showSnack('Can\'t get power', isError: true);
     }

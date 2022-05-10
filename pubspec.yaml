@@ -25,5 +25,5 @@ flutter:
       android:
         package: studio.novikov.battery
         pluginClass: BatteryPlugin
-      ios:
-        pluginClass: BatteryPlugin
+#      ios:
+#        pluginClass: BatteryPlugin
